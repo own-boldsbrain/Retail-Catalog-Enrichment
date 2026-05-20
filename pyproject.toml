@@ -22,6 +22,7 @@ dependencies = [
   "pypdf==6.1.1",
   "numpy>=1.26.0",
   "deepagents==0.5.7",
+  "langgraph-checkpoint>=3.0.0",
   "langchain-openai==1.1.9",
   "exa-py==2.12.1",
 ]
