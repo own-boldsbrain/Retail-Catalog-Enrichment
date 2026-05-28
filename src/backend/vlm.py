@@ -640,7 +640,7 @@ def _call_nemotron_enhance_vlm(
 
     info = LOCALE_CONFIG.get(locale, {"language": "English", "region": "United States", "country": "United States", "context": "American English"})
     localized_terminology_rule = _localized_terminology_rule(info)
-    localized_terminology_line = f"9. {localized_terminology_rule}" if localized_terminology_rule else ""
+    localized_terminology_line = f"11. {localized_terminology_rule}" if localized_terminology_rule else ""
     llm_config = get_config().get_llm_config()
     client = OpenAI(base_url=llm_config['url'], api_key=api_key)
 
@@ -684,11 +684,12 @@ STRICT RULES:
 7. Do not use size/weight claims such as compact, large, spacious, lightweight, or heavy unless scale is visible or the user provided that detail.
 8. Colors must be selected from ALLOWED COLORS only. Do not output materials, finishes, textures, or product types as colors; choose the closest visible generic color instead.
 9. Do not include packaging/container appearance in titles: cap color, bottle color, box color, label color, banner color, background color, shape, label placement, or similar visual packaging details belong in description/tags, not title, unless they are official product variants or necessary retail differentiators.
+10. For descriptions, treat visual analysis as evidence rather than copy. Do not narrate raw visual or OCR observations, exact visible strings, transient status/readout text, decorative markings, or where text/branding appears unless that information is the official brand, model, or product identity. Generalize visible interfaces and components into shopper-facing feature language.
 {localized_terminology_line}
 
 YOUR TASK:
 - title: {title_instruction} Write in {info['language']}.
-- description: Write a rich, persuasive product description. Merge visual details with user-provided information. {desc_instruction} Write in {info['language']}.
+- description: Write rich, persuasive ecommerce copy for a product detail page, not a literal visual inventory. Merge shopper-relevant visual details with user-provided information. {desc_instruction} Write in {info['language']}.
 - categories: Pick from allowed list only. English. Array format.
 - tags: {"Keep all existing user tags AND add more from the visual analysis." if product_data else "Generate 10 relevant search tags."} English.
 - colors: Use visible product colors from ALLOWED COLORS only. English.
@@ -852,6 +853,7 @@ CRITICAL RULES:
    - Apply brand voice/tone to title and description while preserving the target language above
    - Use brand-preferred terminology and expressions
    - Do NOT add ingredients, specifications, or features not present in the enhanced content above. Rephrase, style, and when requested, safely expand only what is already there
+   - Keep descriptions as shopper-facing catalog copy. Do not turn raw visual/OCR observations, exact visible strings, transient status/readout text, decorative markings, or text/branding placement from the source content into prose unless they are official product identity.
 
 4. **Categories**:
    - Validate against the allowed categories list above
@@ -1199,13 +1201,13 @@ def _call_vlm(image_bytes: bytes, content_type: str, locale: str = "en-US") -> D
     completion = client.chat.completions.create(
         model=vlm_config['model'],
         messages=[
-            {"role": "system", "content": "/no_think"},
             {"role": "user", "content": [
                 {"type": "image_url", "image_url": {"url": f"data:{content_type};base64,{base64.b64encode(image_bytes).decode()}"}},
                 {"type": "text", "text": prompt_text}
             ]}
         ],
-        temperature=0.1, top_p=0.9, max_tokens=4096, stream=True
+        temperature=0.1, top_p=0.9, max_tokens=4096, stream=True,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
 
     text = "".join(chunk.choices[0].delta.content for chunk in completion if chunk.choices[0].delta and chunk.choices[0].delta.content)
@@ -1310,13 +1312,13 @@ def extract_rich_product_json(image_bytes: bytes, content_type: str, locale: str
     completion = client.chat.completions.create(
         model=vlm_config['model'],
         messages=[
-            {"role": "system", "content": "/no_think"},
             {"role": "user", "content": [
                 {"type": "image_url", "image_url": {"url": f"data:{content_type};base64,{base64.b64encode(image_bytes).decode()}"}},
                 {"type": "text", "text": prompt_text}
             ]}
         ],
-        temperature=0.1, top_p=0.9, max_tokens=8192, stream=True
+        temperature=0.1, top_p=0.9, max_tokens=8192, stream=True,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
 
     text = "".join(
@@ -1378,7 +1380,7 @@ def _call_nemotron_structure_vlm(vlm_text: str, locale: str = "en-US") -> Dict[s
     categories_str = json.dumps(CATEGORY_OUTPUT_VALUES)
     colors_str = json.dumps(ALLOWED_COLORS)
 
-    prompt = f"""/no_think Convert the visual description below into e-commerce product catalog fields. Write in polished, professional catalog language in {info['language']} for {info['region']} ({info['context']}). Do NOT invent features, materials, or specifications not mentioned in the description. Do NOT state capacity, dimensions, volume, weight, power rating, counts, compatibility, or model/spec values unless the visual description explicitly says the value appears as readable printed text. If the visual description mentions a number/spec but does not say it is readable printed text, omit it. Do NOT use size/weight claims like compact, large, spacious, lightweight, or heavy unless scale is visible in the visual description.
+    prompt = f"""/no_think Convert the visual description below into e-commerce product catalog fields. Treat the visual description as internal evidence, not as copy to paraphrase or summarize. Write polished product detail page content in {info['language']} for {info['region']} ({info['context']}). Do NOT invent features, materials, or specifications not mentioned in the description. Do NOT state capacity, dimensions, volume, weight, power rating, counts, compatibility, or model/spec values unless the visual description explicitly says the value appears as readable printed text. If the visual description mentions a number/spec but does not say it is readable printed text, omit it. Do NOT use size/weight claims like compact, large, spacious, lightweight, or heavy unless scale is visible in the visual description.
 {localized_terminology_block}
 
 VISUAL DESCRIPTION:
@@ -1388,11 +1390,21 @@ ALLOWED CATEGORIES: {categories_str}
 ALLOWED COLORS: {colors_str}
 
 RULES:
-- title: Clear catalog title, not creative copy. Use only customer-facing product identity: brand/model names, official product name, product type, variant, flavor, scent, formulation, count, dosage, rating, size, material, compatibility, and model/spec values when explicitly readable or provided. Do not include packaging/container appearance such as cap color, bottle color, box color, label color, banner color, background color, shape, or label placement unless it is an official product variant or necessary retail differentiator. Do not copy visible English generic product-type label text as the localized product type; translate generic product-type words into {info['language']}. Do not include capacities, dimensions, model values, or other specs unless the visual description says they are readable printed text. Write in {info['language']}.
-- description: Write as customer-facing e-commerce catalog copy in {info['language']}. Highlight the product's appeal, visible design, and visible features. Do NOT describe the label or packaging text placement (no "brand name is displayed on", "text reads", "prominently displayed", "printed in white"). Instead, naturally incorporate brand and product names into the copy.
+- title: Clear, descriptive catalog title, not creative copy. Use only customer-facing product identity: brand/model names, official product name, product type, variant, flavor, scent, formulation, count, dosage, rating, size, material, compatibility, and model/spec values when explicitly readable or provided. When visually supported, include concise shopper-facing differentiators such as color/finish, usage context, primary form factor, visible interface/control style, mobility, storage, or included visible accessory type. Include model/series/variant words only when the evidence unmistakably identifies them as official product identity; otherwise omit them and enrich the title with visible customer-facing differentiators. Do not include numeric model/series values unless the evidence clearly identifies the number as an official model, SKU, size, count, or variant; omit numbers that could be screen states, control values, partial OCR, or ambiguous visible text. Omit ambiguous readable strings, incidental component descriptors, and spatial/placement details. Write a natural retail noun phrase; do not copy raw OCR fragments, visible-text snippets, or awkward noun stacks from the evidence. Use portability terms only when the visible form factor supports carryable or compact transport; otherwise use general mobility language only when movement support is visible. Do not include packaging/container appearance such as cap color, bottle color, box color, label color, banner color, background color, shape, or label placement unless it is an official product variant or necessary retail differentiator. Do not copy visible English generic product-type label text as the localized product type; translate generic product-type words into {info['language']}. Do not include capacities, dimensions, model values, or other specs unless the visual description says they are clearly readable printed product specs, not a transient screen state or control readout. Write in {info['language']}.
+- description: Write a rich, benefit-led ecommerce product detail description in {info['language']}, not a literal visual inventory. Use 2-4 polished sentences when enough evidence exists. Convert raw visual evidence into shopper-relevant benefits and visible product attributes: product purpose, design/finish, visible controls or interface, storage/support/mobility features, usage context, and overall appeal. Do NOT narrate raw visual or OCR observations, exact visible strings, transient status/readout text, decorative markings, or where text/branding appears unless that information is the official brand, model, or product identity. Brand names may appear naturally as identity, but do not describe logo or branding appearance as a style accent, decoration, placement detail, or visible feature. If a detail is merely a readable label, status display, control label, logo treatment, text location, icon, or decorative mark, use it only as internal evidence and omit it from the description. Do not turn labels, icons, markings, or display text into standalone feature claims. For screens or controls, describe the visible capability in general customer language; never include example values or labels from the display. Naturally incorporate brand and product names, and generalize visible interfaces and components into customer-facing feature language.
 - categories: Pick 1-2 from the allowed list. Use "uncategorized" if none fit. English.
 - tags: 10 search tags derived from the text. English.
 - colors: 1-2 visible product colors selected from ALLOWED COLORS only. Do not output materials, finishes, textures, or product types as colors; choose the closest visible generic color instead. English.
+
+FINAL SELF-CHECK BEFORE JSON:
+- The description must read like ecommerce product copy, not an image caption or visual inspection note.
+- The description should be specific and useful enough for a shopper; do not collapse it into a single generic sentence when multiple shopper-relevant visible attributes are available.
+- If the description mentions raw text appearance, an exact screen/status/readout value, decorative mark details, or where branding/text appears, rewrite it before returning JSON.
+- If the description describes logo or branding appearance as a visual feature, rewrite it to use the brand only as product identity or omit it.
+- If the description turns labels, icons, markings, or display text into standalone feature claims, rewrite it using only the underlying visible component or omit the claim.
+- If the title sounds like copied OCR fragments, an uncertain model/variant, incidental component wording, or an unnatural noun stack, rewrite it as a normal catalog title with visible shopper-facing differentiators.
+- If the title contains a number that could be a display state, control value, partial OCR, or ambiguous visible text, remove the number unless it is unmistakably an official product identity value.
+- If the title overstates portability from limited movement cues, rewrite it with accurate mobility wording or omit the claim.
 
 Return ONLY valid JSON:
 {{"title": "...", "description": "...", "categories": [...], "tags": [...], "colors": [...]}}"""

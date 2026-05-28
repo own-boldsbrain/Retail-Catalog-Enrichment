@@ -69,6 +69,15 @@ class TestCallPlannerLLM:
         assert "lighting" in result
         assert "cfg_scale" in result
         assert "steps" in result
+
+        call_args = mock_client.chat.completions.create.call_args
+        system_prompt = call_args.kwargs["messages"][0]["content"]
+        user_prompt = call_args.kwargs["messages"][1]["content"]
+        assert "physically plausible" in system_prompt
+        assert "FUNCTIONAL REALISM CHECK" in user_prompt
+        assert "support surface" in user_prompt
+        assert "normally used or displayed that way" in user_prompt
+        assert "Do not create impossible, unsafe, toy-like" in user_prompt
     
     @patch('backend.image.OpenAI')
     @patch('backend.image.get_config')
@@ -262,6 +271,7 @@ class TestGenerateImageVariation:
         # Mock reflection
         mock_reflection.return_value = {
             "score": 85.5,
+            "rationale": "The product is mostly preserved with a minor background blur.",
             "issues": ["Minor background blur"]
         }
 
@@ -288,6 +298,7 @@ class TestGenerateImageVariation:
         
         # Verify new reflection fields
         assert result["quality_score"] == 85.5
+        assert result["quality_rationale"] == "The product is mostly preserved with a minor background blur."
         assert isinstance(result["quality_issues"], list)
         assert len(result["quality_issues"]) == 1
         
@@ -295,6 +306,10 @@ class TestGenerateImageVariation:
         mock_planner.assert_called_once()
         mock_flux.assert_called_once()
         mock_reflection.assert_called_once()
+        reflection_kwargs = mock_reflection.call_args.kwargs
+        assert reflection_kwargs["product_title"] == "Test Product"
+        assert "background" in reflection_kwargs["generation_prompt"].lower()
+        assert sample_flux_plan["background_style"] in reflection_kwargs["generation_prompt"]
     
     @pytest.mark.asyncio
     @patch('backend.image.evaluate_image_quality')
@@ -313,6 +328,7 @@ class TestGenerateImageVariation:
         # Mock reflection
         mock_reflection.return_value = {
             "score": 92.0,
+            "rationale": "The product remains faithful to the original.",
             "issues": []
         }
 
@@ -330,6 +346,7 @@ class TestGenerateImageVariation:
         assert result["generated_image_b64"] == "generatedbase64image"
         assert result["variation_plan"] == sample_flux_plan
         assert result["quality_score"] == 92.0
+        assert result["quality_rationale"] == "The product remains faithful to the original."
         assert result["quality_issues"] == []
         assert "artifact_id" not in result
         assert "image_path" not in result
@@ -439,6 +456,7 @@ class TestGenerateImageVariation:
         
         # Reflection fields should be None and empty list
         assert result["quality_score"] is None
+        assert result["quality_rationale"] is None
         assert result["quality_issues"] == []
 
 
@@ -452,6 +470,7 @@ class TestGenerateVariationEndpoint:
             "generated_image_b64": sample_base64_image,
             "variation_plan": sample_flux_plan,
             "quality_score": 91.0,
+            "quality_rationale": "The product remains faithful to the original.",
             "quality_issues": []
         }
 
@@ -476,6 +495,7 @@ class TestGenerateVariationEndpoint:
             "generated_image_b64": sample_base64_image,
             "variation_plan": sample_flux_plan,
             "quality_score": 91.0,
+            "quality_rationale": "The product remains faithful to the original.",
             "quality_issues": [],
             "locale": "en-US"
         }

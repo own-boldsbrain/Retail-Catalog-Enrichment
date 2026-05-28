@@ -95,8 +95,10 @@ class TestCallVLM:
 
         call_args = mock_client.chat.completions.create.call_args
         messages = call_args.kwargs["messages"]
-        assert messages[0]["content"] == "/no_think"
-        prompt_text = messages[1]["content"][1]["text"]
+        assert messages[0]["role"] == "user"
+        assert "/no_think" not in json.dumps(messages)
+        assert call_args.kwargs["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+        prompt_text = messages[0]["content"][1]["text"]
         assert len(prompt_text) < 300
         assert "Describe only visible facts" in prompt_text
         assert "Include numbers/specs only if clearly readable as printed text" in prompt_text
@@ -159,12 +161,44 @@ class TestCallNemotronStructureVlm:
         assert "Do NOT state capacity, dimensions, volume, weight, power rating" in prompt
         assert "readable printed text" in prompt
         assert "If the visual description mentions a number/spec but does not say it is readable printed text, omit it" in prompt
-        assert "Clear catalog title, not creative copy" in prompt
+        assert "Clear, descriptive catalog title, not creative copy" in prompt
         assert "Do NOT use size/weight claims like compact" in prompt
         assert "ALLOWED COLORS" in prompt
         assert "Do not output materials, finishes, textures, or product types as colors" in prompt
         assert "Do not include packaging/container appearance such as cap color" in prompt
         assert "official product variant or necessary retail differentiator" in prompt
+        assert "Treat the visual description as internal evidence, not as copy to paraphrase or summarize" in prompt
+        assert "Clear, descriptive catalog title" in prompt
+        assert "include concise shopper-facing differentiators" in prompt
+        assert "rich, benefit-led ecommerce product detail description" in prompt
+        assert "Use 2-4 polished sentences when enough evidence exists" in prompt
+        assert "product purpose, design/finish, visible controls or interface" in prompt
+        assert "not a literal visual inventory" in prompt
+        assert "Do NOT narrate raw visual or OCR observations" in prompt
+        assert "exact visible strings" in prompt
+        assert "transient status/readout text" in prompt
+        assert "where text/branding appears" in prompt
+        assert "generalize visible interfaces and components into customer-facing feature language" in prompt.lower()
+        assert "FINAL SELF-CHECK BEFORE JSON" in prompt
+        assert "must read like ecommerce product copy" in prompt
+        assert "do not collapse it into a single generic sentence" in prompt
+        assert "Include model/series/variant words only when the evidence unmistakably identifies them as official product identity" in prompt
+        assert "otherwise omit them and enrich the title with visible customer-facing differentiators" in prompt
+        assert "Omit ambiguous readable strings, incidental component descriptors, and spatial/placement details" in prompt
+        assert "not a transient screen state or control readout" in prompt
+        assert "never include example values or labels from the display" in prompt
+        assert "exact screen/status/readout value" in prompt
+        assert "Do not turn labels, icons, markings, or display text into standalone feature claims" in prompt
+        assert "Do not include numeric model/series values unless the evidence clearly identifies the number as an official model" in prompt
+        assert "screen states, control values, partial OCR, or ambiguous visible text" in prompt
+        assert "Use portability terms only when the visible form factor supports carryable or compact transport" in prompt
+        assert "otherwise use general mobility language only when movement support is visible" in prompt
+        assert "If the title overstates portability from limited movement cues" in prompt
+        assert "Brand names may appear naturally as identity" in prompt
+        assert "do not describe logo or branding appearance as a style accent" in prompt
+        assert "describes logo or branding appearance as a visual feature" in prompt
+        assert "uncertain model/variant" in prompt
+        assert "unnatural noun stack" in prompt
         assert "Use established retail terminology for the target locale" not in prompt
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["temperature"] == 0.0
@@ -306,8 +340,10 @@ class TestExtractRichProductJson:
         assert result == rich_response
         call_args = mock_client.chat.completions.create.call_args
         messages = call_args.kwargs["messages"]
-        assert messages[0] == {"role": "system", "content": "/no_think"}
-        prompt = messages[1]["content"][1]["text"]
+        assert messages[0]["role"] == "user"
+        assert "/no_think" not in json.dumps(messages)
+        assert call_args.kwargs["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+        prompt = messages[0]["content"][1]["text"]
         assert "JSON object only" in prompt
         assert "GENERIC PRODUCT SCHEMA" in prompt
         assert '"product_identity"' in prompt

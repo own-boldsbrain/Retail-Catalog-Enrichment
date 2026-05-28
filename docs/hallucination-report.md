@@ -2,14 +2,14 @@
 
 **Date:** 2026-04-15
 **Reported by:** Antonio Martinez
-**Status:** Open — Separate task pending
+**Status:** Historical — superseded by Nemotron 3 Nano Omni migration
 **Affected component:** `src/backend/vlm.py` — `_call_nemotron_enhance_vlm()` (Step 1 enhancement)
 
 ---
 
 ## Summary
 
-The VLM model (`nemotron-nano-12b-v2-vl`, 12B parameters) introduces hallucinations at the source — misreading visible text, fabricating materials and features, and drawing from training data rather than strictly describing the image. The LLM enhancement step (`_call_nemotron_enhance_vlm`) then compounds these errors by rewriting them into confident marketing copy. Both layers contribute, but the root cause is the VLM.
+This report documents hallucinations observed with the pre-Omni VLM stack before the migration to Nemotron 3 Nano Omni (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`). In those runs, the VLM introduced hallucinations at the source — misreading visible text, fabricating materials and features, and drawing from training data rather than strictly describing the image. The LLM enhancement step (`_call_nemotron_enhance_vlm`) then compounded those errors by rewriting them into confident marketing copy. Both layers contributed, but the root cause was the VLM output quality at that time.
 
 ---
 
@@ -22,7 +22,7 @@ Image Upload
   |
   v
 [VLM] _call_vlm()                         <-- Accurate visual analysis
-  |   Model: nemotron-nano-12b-v2-vl
+  |   Model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
   |   Output: title, description, categories, tags, colors
   v
 [LLM] _call_nemotron_enhance_vlm()        <-- Hallucinations introduced HERE
@@ -40,7 +40,7 @@ Image Upload
 ### Where the Problem Lives
 
 **Layer 1 — VLM** (`src/backend/vlm.py`, `_call_vlm()`):
-The 12B VLM model misreads text, fabricates materials/features, and fills in details from training data. This happens regardless of prompt complexity — even "describe this product" triggers hallucinations. Longer prompts produce *more* hallucinations, not fewer. This is confirmed by the NVIDIA research team: longer system prompts degrade VLM output quality for this model class.
+The pre-Omni VLM path misread text, fabricated materials/features, and filled in details from training data. This happened regardless of prompt complexity — even "describe this product" triggered hallucinations. Longer prompts produced *more* hallucinations, not fewer. This finding is retained as historical evidence and should be revalidated on Nemotron 3 Nano Omni before applying the same conclusion to the current model.
 
 **Layer 2 — LLM Enhancement** (`src/backend/vlm.py`, `_call_nemotron_enhance_vlm()`):
 The LLM takes the already-hallucinated VLM output and rewrites it into confident marketing copy, compounding errors and adding its own fabrications. Skipping this step when no user data is provided eliminates the second layer.
@@ -55,7 +55,7 @@ The LLM takes the already-hallucinated VLM output and rewrites it into confident
 
 ### VLM Direct Testing (2026-04-15)
 
-Three prompts were tested against the same VLM endpoint (`nemotron-nano-12b-v2-vl`) with `mower.jpeg`:
+Three prompts were tested against the same pre-Omni VLM endpoint with `mower.jpeg`:
 
 **Prompt 1 — Minimal: "describe this product"**
 
@@ -101,7 +101,7 @@ Initial analysis attributed hallucinations to the LLM enhancement step. **Direct
 | "silver accents" on wheels | Wheels are entirely black | Fabricated detail | LLM enhancement |
 | "red power button" | Not visible | Fabricated feature | LLM enhancement |
 
-The LLM enhancement step compounded the VLM's errors (adding "silver accents", "red power button"), but the root cause is the 12B VLM model's vision limitations.
+The LLM enhancement step compounded the VLM's errors (adding "silver accents", "red power button"), but the root cause was the previous VLM path's vision limitations.
 
 ---
 
@@ -133,9 +133,9 @@ This is confirmed by the NVIDIA research team: longer system prompts degrade out
 
 **Trade-off:** A shorter VLM prompt may return unstructured text instead of clean JSON. This would require parsing the free-text output into structured fields, either with regex/heuristics or a fast LLM call. The benefit is more accurate visual descriptions at the source.
 
-### Fix 3 (Future): Upgrade VLM Model
+### Fix 3 (Done): Upgrade VLM Model
 
-The `nemotron-nano-12b-v2-vl` (12B parameters) has fundamental vision limitations with stylized text and detail accuracy. A larger VLM (72B+) would likely improve OCR accuracy and reduce training-data hallucinations. This is a infrastructure/cost trade-off rather than a code change.
+The current VLM configuration uses Nemotron 3 Nano Omni (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`). Treat the examples above as historical baseline cases and re-run them against the current model before drawing conclusions about remaining OCR or hallucination behavior.
 
 ---
 

@@ -65,6 +65,7 @@ function Home() {
   const [isLoadingProtocols, setIsLoadingProtocols] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<(string | null)[]>([null, null]);
   const [qualityScores, setQualityScores] = useState<(number | null)[]>([null, null]);
+  const [qualityRationales, setQualityRationales] = useState<(string | null)[]>([null, null]);
   const [qualityIssues, setQualityIssues] = useState<(string[] | null)[]>([null, null]);
   const [generated3DModel, setGenerated3DModel] = useState<string | null>(null);
   const [model3DError, setModel3DError] = useState<string | null>(null);
@@ -102,6 +103,7 @@ function Home() {
     setProtocolSchemas(null);
     setGeneratedImages([null, null]);
     setQualityScores([null, null]);
+    setQualityRationales([null, null]);
     setQualityIssues([null, null]);
     setGenerated3DModel(null);
     setModel3DError(null);
@@ -144,6 +146,7 @@ function Home() {
     setIsLoadingProtocols(false);
     setGeneratedImages([null, null]);
     setQualityScores([null, null]);
+    setQualityRationales([null, null]);
     setQualityIssues([null, null]);
     setGenerated3DModel(null);
     setModel3DError(null);
@@ -278,6 +281,7 @@ function Home() {
     setProtocolSchemas(null);
     setGeneratedImages([null, null]);
     setQualityScores([null, null]);
+    setQualityRationales([null, null]);
     setQualityIssues([null, null]);
     setGenerated3DModel(null);
     setModel3DError(null);
@@ -412,6 +416,7 @@ function Home() {
               const result = await generateImageVariation(variationParams);
               setGeneratedImages(prev => [result.imageUrl, prev[1]]);
               setQualityScores(prev => [result.qualityScore, prev[1]]);
+              setQualityRationales(prev => [result.qualityRationale, prev[1]]);
               setQualityIssues(prev => [result.qualityIssues, prev[1]]);
             } catch (error) {
               console.error('Error generating variation 1:', error);
@@ -427,6 +432,7 @@ function Home() {
               const result = await generateImageVariation(variationParams);
               setGeneratedImages(prev => [prev[0], result.imageUrl]);
               setQualityScores(prev => [prev[0], result.qualityScore]);
+              setQualityRationales(prev => [prev[0], result.qualityRationale]);
               setQualityIssues(prev => [prev[0], result.qualityIssues]);
             } catch (error) {
               console.error('Error generating variation 2:', error);
@@ -620,6 +626,7 @@ function Home() {
             <GeneratedVariationsSection
               generatedImages={generatedImages}
               qualityScores={qualityScores}
+              qualityRationales={qualityRationales}
               qualityIssues={qualityIssues}
               generated3DModel={generated3DModel}
               model3DError={model3DError}

@@ -581,6 +581,7 @@ async def generate_variation(
             "generated_image_b64": result["generated_image_b64"],
             "variation_plan": result["variation_plan"],
             "quality_score": result["quality_score"],
+            "quality_rationale": result["quality_rationale"],
             "quality_issues": result["quality_issues"],
             "locale": locale
         }

@@ -65,7 +65,7 @@ services:
 
   # VLM Model
   vlm-nim:
-    image: nvcr.io/nim/nvidia/nemotron-nano-12b-v2-vl:1.5.0
+    image: nvcr.io/nim/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:1.7.0-variant
     container_name: nim-vlm
     ports:
       - "8001:8000"
