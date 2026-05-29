@@ -34,6 +34,9 @@ class TestRenderFluxPrompt:
         assert "overhead" in prompt.lower()
         assert "natural window light" in prompt.lower()
         assert "do not alter the subject" in prompt.lower()
+        assert "physically plausible" in prompt.lower()
+        assert "realistic support surface" in prompt.lower()
+        assert "normally used or displayed that way" in prompt.lower()
         assert isinstance(prompt, str)
         assert len(prompt) > 0
     
@@ -49,6 +52,7 @@ class TestRenderFluxPrompt:
         assert "test product" in prompt.lower()
         assert "neutral background" in prompt.lower()
         assert "hyperrealistic" in prompt.lower()
+        assert "do not create impossible, unsafe, toy-like, or scale-incoherent scenes" in prompt.lower()
         assert isinstance(prompt, str)
     
     def test_render_with_negatives_list(self):
@@ -184,4 +188,3 @@ class TestExtractBase64ImageFromFluxResponse:
         }
         result = _extract_base64_image_from_flux_response(response)
         assert result == "actualImageData"
-

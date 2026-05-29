@@ -76,7 +76,8 @@ def _call_planner_llm(title: str, description: str, categories: List[str], local
         model=llm_config['model'],
         messages=[
             {"role": "system", "content": "/no_think You are a product image variation planner with cultural awareness. Output ONLY valid JSON - no markdown formatting, no code blocks, no backticks. "
-             "Preserve the subject identity. Change ONLY background, camera angle, lighting, and mood according to the title, description, and target locale. "
+             "Preserve the subject identity. Change ONLY background, camera angle, lighting, mood, and staging according to the title, description, and target locale. "
+             "The generated scene must be physically plausible and commercially believable for the product's likely function, scale, support needs, ventilation, safety, and typical use context. "
              "Create backgrounds that reflect the cultural aesthetic and lifestyle of the target region! "
              "IMPORTANT: Always write your plan in ENGLISH, even if the product title/description is in another language. The image generation model only understands English. "
              "Adhere to the JSON schema with fields: preserve_subject, background_style, camera_angle, lighting, color_palette, negatives, cfg_scale, steps, variants."},
@@ -102,6 +103,13 @@ BE CREATIVE AND VARY YOUR CHOICES:
 - Use different camera angles: overhead, eye-level, low angle, 3/4 view, close-up
 - Vary lighting based on regional characteristics: natural window light, golden hour, studio softbox, dramatic side light, diffused overcast
 - Avoid repetitive patterns - each generation should feel unique and natural
+
+FUNCTIONAL REALISM CHECK:
+- Choose a setting and support surface that make real-world sense for the product's apparent function, size, weight, mobility, power/fuel/water needs, heat, airflow, cleanliness, and safety constraints.
+- Any elevated, indoor, decorative, furniture-like, or lifestyle staging is only valid when products of that type are normally used or displayed that way.
+- Products whose visible form, scale, supports, or operating needs imply special placement must be shown on a realistic stable surface with appropriate clearance and context.
+- If a landmark, skyline, interior style, or cultural motif conflicts with realistic product use, keep it as a background view or environmental accent while placing the product in a plausible usable location.
+- Do not create impossible, unsafe, toy-like, showroom-only, or scale-incoherent scenes just to satisfy a decorative background idea.
 
 CATEGORY-SPECIFIC BACKGROUNDS:
 - For "skincare" products: bathroom counters, vanity setups, living room side tables, bedroom vanities, spa-inspired settings - with cultural touches
@@ -181,7 +189,8 @@ def _render_flux_prompt(plan: Dict[str, Any], categories: Optional[List[str]] = 
             f"Make it hyperrealistic, ideal for an e-commerce product image. "
             f"Use {lighting} lighting and {camera} camera angle. "
             f"Maintain subject color, orientation, and material. "
-            f"Scale the product to natural, proportional size for the environment."
+            f"Scale the product to natural, proportional size for the environment. "
+            f"Use a physically plausible support surface and placement for the product's real-world use."
         )
     else:
         prompt = (
@@ -189,7 +198,11 @@ def _render_flux_prompt(plan: Dict[str, Any], categories: Optional[List[str]] = 
             f"Make it hyperrealistic, ideal for an e-commerce product image. "
             f"Use {lighting} lighting and {camera} camera angle. "
             f"Maintain subject color, orientation, and material. "
-            f"Scale the product to natural, proportional size for the environment."
+            f"Scale the product to natural, proportional size for the environment. "
+            f"Place the product only in a physically plausible real-world setting with a realistic support surface. "
+            f"Use elevated, indoor, decorative, furniture-like, or lifestyle staging only when products of that type are normally used or displayed that way. "
+            f"If the product's visible form, scale, supports, or operating needs imply special placement, use a stable floor, ground, work surface, or open-area context that matches its actual use and safety needs. "
+            f"Do not create impossible, unsafe, toy-like, or scale-incoherent scenes."
         )
     
     if neg_text:
@@ -281,7 +294,7 @@ async def generate_image_variation(
         locale: Target locale for variation
     
     Returns:
-        Dict with generated_image_b64, variation_plan, quality_score, quality_issues
+        Dict with generated_image_b64, variation_plan, quality_score, quality_rationale, quality_issues
     """
     logger.info("Starting image generation pipeline: title_len=%d locale=%s", len(title), locale)
     
@@ -316,17 +329,24 @@ async def generate_image_variation(
             original_image_bytes=image_bytes,
             generated_image_bytes=generated_image_bytes,
             content_type=content_type,
-            product_title=title
+            product_title=title,
+            generation_prompt=prompt,
         )
         
         quality_score = None
+        quality_rationale = None
         quality_issues = []
         
         if quality_result is not None:
             quality_score = quality_result.get("score")
+            quality_rationale = quality_result.get("rationale") or None
             quality_issues = quality_result.get("issues", [])
-            logger.info("Reflection complete: quality_score=%.1f issues_count=%d", 
-                       quality_score, len(quality_issues))
+            logger.info(
+                "Reflection complete: quality_score=%.1f rationale_present=%s issues_count=%d",
+                quality_score,
+                bool(quality_rationale),
+                len(quality_issues),
+            )
             if quality_issues:
                 logger.info("Quality issues detected: %s", quality_issues)
         else:
@@ -339,6 +359,7 @@ async def generate_image_variation(
             "generated_image_b64": image_b64,
             "variation_plan": plan,
             "quality_score": quality_score,
+            "quality_rationale": quality_rationale,
             "quality_issues": quality_issues
         }
         

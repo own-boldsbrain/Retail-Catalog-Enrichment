@@ -92,7 +92,7 @@ uvicorn --app-dir src backend.main:app --host 0.0.0.0 --port 8000 --reload
   - Request: `multipart/form-data` with fields:
     - `image` (file): Product image
     - `locale` (string, optional): Regional locale code (default: "en-US")
-  - Response: Arbitrary JSON object generated directly by Nemotron VLM with rich, visually grounded product attributes
+  - Response: Arbitrary JSON object generated directly by Nemotron 3 Nano Omni with rich, visually grounded product attributes
   - Used by the UI's Raw data tab next to Details
   - Does not persist artifacts or modify the enriched catalog fields
 
@@ -111,6 +111,7 @@ uvicorn --app-dir src backend.main:app --host 0.0.0.0 --port 8000 --reload
     - `generated_image_b64`: string (base64-encoded PNG)
     - `variation_plan`: object (planner LLM output with background style, camera angle, lighting)
     - `quality_score`: float (0-100 quality score from VLM reflection, or null if evaluation failed)
+    - `quality_rationale`: string (concise explanation of the reflection score, including why a 100% score was assigned)
     - `quality_issues`: array (list of detected quality issues from reflection analysis)
 
 **FAQ Generation:**
@@ -379,6 +380,7 @@ Given the catalog enrichment focus, pay special attention to:
    - **NEVER hardcode specific product examples in prompts.** Rules must be generic and work across all products. For example, do NOT write rules like `"when the user says 'synthetic leather' and the camera sees 'leather', use the user's term"` — instead write `"when there is a conflict, prefer the user's terms for materials and specs"`.
    - Prompts are consumed by millions of products — every rule must generalize.
    - If a specific scenario fails, fix the underlying rule, not just the example.
+   - When improving prompts, prefer generic, scalable prompt contracts, schemas, field separation, and reusable rubrics. Do not add product-specific examples, literal-token filters, or one-off regex/string post-processing rules unless explicitly requested.
 
 4. **Documentation**
    - Update relevant documentation when making changes

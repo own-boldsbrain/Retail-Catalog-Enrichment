@@ -202,7 +202,7 @@ interface GenerateVariationParams {
   enhancedProduct?: any;
 }
 
-export async function generateImageVariation(params: GenerateVariationParams): Promise<{ imageUrl: string | null, qualityScore: number | null, qualityIssues: string[] }> {
+export async function generateImageVariation(params: GenerateVariationParams): Promise<{ imageUrl: string | null, qualityScore: number | null, qualityRationale: string | null, qualityIssues: string[] }> {
   const formData = new FormData();
   formData.append('image', params.file);
   formData.append('locale', params.locale);
@@ -230,6 +230,7 @@ export async function generateImageVariation(params: GenerateVariationParams): P
   return {
     imageUrl: data.generated_image_b64 ? `data:image/png;base64,${data.generated_image_b64}` : null,
     qualityScore: data.quality_score !== undefined && data.quality_score !== null ? data.quality_score : null,
+    qualityRationale: typeof data.quality_rationale === 'string' && data.quality_rationale.trim() ? data.quality_rationale : null,
     qualityIssues: data.quality_issues || []
   };
 }

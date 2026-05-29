@@ -5,6 +5,7 @@ import { ModelViewer3D } from '@/components/ModelViewer3D';
 interface Props {
   generatedImages: (string | null)[];
   qualityScores: (number | null)[];
+  qualityRationales: (string | null)[];
   qualityIssues: (string[] | null)[];
   generated3DModel: string | null;
   model3DError: string | null;
@@ -14,6 +15,7 @@ interface Props {
 export function GeneratedVariationsSection({ 
   generatedImages,
   qualityScores,
+  qualityRationales,
   qualityIssues,
   generated3DModel, 
   model3DError,
@@ -178,7 +180,7 @@ export function GeneratedVariationsSection({
                     )}
                   </div>
                 )}
-                {generatedImages[index] && qualityIssues[index] && qualityIssues[index]!.length > 0 && (
+                {generatedImages[index] && (qualityRationales[index] || (qualityIssues[index] && qualityIssues[index]!.length > 0)) && (
                   <div
                     style={{
                       padding: '12px',
@@ -197,38 +199,52 @@ export function GeneratedVariationsSection({
                           fontSize: '11px'
                         }}
                       >
-                        Quality Issues
+                        Quality Assessment
                       </Text>
-                      <Stack gap="1">
-                        {qualityIssues[index]!.map((issue, issueIdx) => (
-                          <div
-                            key={issueIdx}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: '6px'
-                            }}
-                          >
-                            <span style={{ 
-                              color: '#f97316',
-                              fontSize: '14px',
-                              lineHeight: '1.4',
-                              marginTop: '1px'
-                            }}>•</span>
-                            <Text 
-                              kind="body/regular/xs" 
-                              style={{ 
-                                color: 'var(--text-color-primary)',
-                                fontSize: '12px',
-                                lineHeight: '1.4',
-                                flex: 1
+                      {qualityRationales[index] && (
+                        <Text
+                          kind="body/regular/xs"
+                          style={{
+                            color: 'var(--text-color-primary)',
+                            fontSize: '12px',
+                            lineHeight: '1.4'
+                          }}
+                        >
+                          {qualityRationales[index]}
+                        </Text>
+                      )}
+                      {qualityIssues[index] && qualityIssues[index]!.length > 0 && (
+                        <Stack gap="1">
+                          {qualityIssues[index]!.map((issue, issueIdx) => (
+                            <div
+                              key={issueIdx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '6px'
                               }}
                             >
-                              {issue}
-                            </Text>
-                          </div>
-                        ))}
-                      </Stack>
+                              <span style={{
+                                color: '#f97316',
+                                fontSize: '14px',
+                                lineHeight: '1.4',
+                                marginTop: '1px'
+                              }}>•</span>
+                              <Text
+                                kind="body/regular/xs"
+                                style={{
+                                  color: 'var(--text-color-primary)',
+                                  fontSize: '12px',
+                                  lineHeight: '1.4',
+                                  flex: 1
+                                }}
+                              >
+                                {issue}
+                              </Text>
+                            </div>
+                          ))}
+                        </Stack>
+                      )}
                     </Stack>
                   </div>
                 )}
@@ -327,4 +343,3 @@ export function GeneratedVariationsSection({
     </div>
   );
 }
-

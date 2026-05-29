@@ -36,7 +36,7 @@ Health check endpoint for monitoring service status.
 The API provides a modular approach for optimal performance and flexibility:
 
 - **1) Fast VLM Analysis (POST `/vlm/analyze`)** - Get product fields quickly
-- **2) Rich VLM Product JSON (POST `/vlm/rich-product`)** - Get a detailed image-grounded JSON object directly from Nemotron VLM
+- **2) Rich VLM Product JSON (POST `/vlm/rich-product`)** - Get a detailed image-grounded JSON object directly from Nemotron 3 Nano Omni
 - **3) FAQ Generation (POST `/vlm/faqs`)** - Generate product FAQs from enriched data
 - **3.5) Manual Knowledge Extraction (POST `/vlm/manual/extract`)** - Extract knowledge from a product manual PDF to enrich FAQs
 - **4) Product Web Insights (POST `/research/product-insights`)** - Research public web information about the enriched product
@@ -157,7 +157,7 @@ curl -X DELETE http://localhost:8000/policies
 
 ## 2️⃣ Fast VLM Analysis: `/vlm/analyze`
 
-Extract product fields using NVIDIA Nemotron VLM and, when policies are loaded, run policy retrieval plus compliance classification.
+Extract product fields using NVIDIA Nemotron 3 Nano Omni and, when policies are loaded, run policy retrieval plus compliance classification.
 
 **Endpoint**: `POST /vlm/analyze`  
 **Content-Type**: `multipart/form-data`
@@ -281,7 +281,7 @@ curl -X POST \
 
 ## 2.5️⃣ Rich VLM Product JSON: `/vlm/rich-product`
 
-Ask Nemotron VLM to describe the uploaded product image as a rich JSON object. This endpoint is image-only: it does not merge user-entered product data, apply brand instructions, run policy checks, or modify the enriched catalog fields returned by `/vlm/analyze`.
+Ask Nemotron 3 Nano Omni to describe the uploaded product image as a rich JSON object. This endpoint is image-only: it does not merge user-entered product data, apply brand instructions, run policy checks, or modify the enriched catalog fields returned by `/vlm/analyze`.
 
 The response schema is intentionally flexible because the VLM may return different useful attributes depending on what is visible in the product image. The UI displays this object in the **Raw data** tab next to **Details**.
 
@@ -786,6 +786,7 @@ Generate culturally-appropriate product variations using FLUX models based on VL
     "lighting": "string"
   },
   "quality_score": 85.5,
+  "quality_rationale": "string",
   "quality_issues": ["string"],
   "locale": "string"
 }
@@ -818,6 +819,7 @@ curl -X POST \
     "lighting": "natural window light"
   },
   "quality_score": 85.5,
+  "quality_rationale": "Product fidelity is strong; the intended background change does not alter the product.",
   "quality_issues": [],
   "locale": "en-US"
 }
