@@ -52,7 +52,7 @@
   "pnpm": {
     "overrides": {
       "js-yaml": "4.1.1",
-      "tar": ">=7.5.11",
+      "tar": "7.5.16",
       "flatted": ">=3.4.2",
       "minimatch": "9.0.7",
       "picomatch": ">=4.0.4"
