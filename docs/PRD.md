@@ -48,11 +48,13 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 ## Functional Requirements
 
 ### FR-1: Image Input Processing
+
 - Accept single or multiple product images (JPEG, PNG formats)
 - Support common image resolutions and file sizes
 - Validate image quality and content relevance
 
 ### FR-2: VLM Content Augmentation
+
 - Integrate with NVIDIA Nemotron 3 Nano Omni
 - Accept existing product JSON data alongside product images
 - Analyze visual product features and compare with existing data
@@ -64,6 +66,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Preserve structured data format including specs, attributes, and metadata
 
 ### FR-3: 2D Image Variation Generation
+
 - Use NVIDIA Nemotron LLM to plan and generate optimized prompts for image variations
 - Use FLUX models to create product variations based on generated prompts
 - Generate multiple angle views
@@ -71,18 +74,21 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Maintain product accuracy and consistency
 
 ### FR-4: 3D Asset Generation
+
 - Integrate Microsoft TRELLIS model
 - Generate 3D models from 2D product images
 - Export 3D assets in standard formats
 - Ensure model quality and accuracy
 
 ### FR-5: Video Clip Generation
+
 - Create 3-5 second product video clips
 - Use open-source video generation models
 - Generate smooth, professional-quality clips
 - Support common video formats (MP4, WebM)
 
 ### FR-6: Multi-Language & Cultural Localization
+
 - Support multiple output languages including English, Spanish, and French across 10 regional locales
 - Generate product titles, descriptions, categories, and tags in selected regional language variant
 - Maintain language consistency across all text outputs using regional terminology (e.g., "ordenador" vs "computadora")
@@ -90,6 +96,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Adapt image generation prompts to include cultural elements specific to target country/region
 
 ### FR-7: Social Media Content Integration
+
 - Extract trending styles, real-world usage patterns, and customer reviews from social media platforms for similar products
 - Analyze visual and video content from social media sources (TikTok, YouTube, Instagram, etc.)
 - Identify product usage contexts, styling trends, and customer sentiment from user-generated content
@@ -106,6 +113,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Support both real-time monitoring and periodic batch analysis modes
 
 ### FR-8: Brand Voice & Taxonomy Customization
+
 - Accept custom brand instructions to guide content enrichment and generation
 - Support brand-specific voice, tone, and writing style preferences
 - Apply custom taxonomy and categorization guidelines consistent with brand standards
@@ -115,6 +123,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Allow optional brand instructions parameter alongside product data and images
 
 ### FR-9: Automated Quality Assessment for Generated Images
+
 - Integrate VLM-based reflection module to evaluate generated image variations
 - Compare generated images against original product photos for quality control
 - Evaluate product consistency (colors, materials, textures, reflective properties)
@@ -127,6 +136,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Ensure background differences from original are not penalized (backgrounds should differ)
 
 ### FR-10: Product FAQ Generation
+
 - Generate 3-5 frequently asked questions and answers for each product from enriched catalog data
 - FAQs are derived from the final enriched catalog data (after VLM analysis, user data merge, and branding)
 - Questions cover practical shopper topics: materials, care instructions, sizing, use cases, compatibility, durability
@@ -136,6 +146,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - UI displays FAQs in a dedicated tab with collapsible accordion items
 
 ### FR-12: Product Manual PDF Enhancement for FAQs
+
 - Accept an optional product manual PDF to enrich FAQ generation with detailed product knowledge
 - Stateless architecture: `/vlm/manual/extract` processes the PDF, returns structured knowledge as JSON, and frees all server-side resources — no server-side storage required
 - Dynamic query generation: LLM generates 5-8 product-type-specific questions based on title and categories (not description) to avoid FAQ duplication with the description
@@ -147,6 +158,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - PDF file size limit: 50 MB; embedding requests batched at 128 chunks per call
 
 ### FR-11: Policy Compliance Checking
+
 - Accept PDF policy documents through a persistent policy library (`/policies` endpoint)
 - Parse and normalize uploaded PDFs into structured policy summaries
 - Embed normalized policy records using NVIDIA embeddings and store in Milvus vector database
@@ -157,6 +169,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Display compliance results in the UI with visual pass/fail indicators
 
 ### FR-13: Protocol Schema Export (ACP & UCP)
+
 - Generate ACP (Agentic Commerce Protocol) and UCP (Unified Commerce Protocol) schema instances from enriched product data
 - Use LLM to extract structured attributes (brand, material, age_group, gender, product_details, product_highlights, short_title, google_product_category) from enriched title and description
 - Merge LLM-extracted fields with enriched data and deterministic defaults (availability, condition, adult, is_bundle) into full schema templates
@@ -168,6 +181,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Schema generation fires in the background after FAQ generation completes, ensuring FAQs are included in both schemas
 
 ### FR-14: Product Web Insights
+
 - Generate a source-backed product research summary from the enriched product title
 - Use LangChain Deep Agents SDK as the research agent harness
 - Use NVIDIA Nemotron 3 Nano LLM as the agent model through the existing LLM configuration
@@ -181,6 +195,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 ## Technical Requirements
 
 ### TR-1: Model Integration
+
 - NVIDIA Nemotron 3 Nano Omni API integration with locale-aware prompting
 - NVIDIA Nemotron LLM integration for culturally-aware prompt planning
 - FLUX model deployment for localized image generation
@@ -188,23 +203,27 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Open-source video generation model setup
 
 ### TR-2: Infrastructure
+
 - GPU-enabled compute resources for model inference
 - Scalable storage for generated assets
 - Queue management for batch processing
 - API endpoints for system interaction
 
 ### TR-3: Performance
+
 - Process single product within 1 minute
 - Support concurrent processing of multiple products
 - Maintain >95% model inference success rate
 
 ### TR-4: Data Management
+
 - Secure storage of uploaded images
 - Organized asset storage structure
 - Metadata tracking and versioning
 - Cleanup policies for temporary files
 
 ### TR-5: Social Media Integration
+
 - API integration with social media platforms (TikTok, YouTube, Instagram, Pinterest)
 - Support for MCP (Model Context Protocol) based data retrieval
 - Web scraping infrastructure for platforms without API access
@@ -218,6 +237,7 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 - Content filtering to exclude inappropriate or irrelevant material
 
 ### TR-6: Product Web Research Agent
+
 - Add `deepagents`, LangChain chat model integration dependencies, and `exa-py`
 - Configure the agent with Nemotron 3 Nano and an Exa-backed search tool
 - Use concise Exa highlights for normal operation, with deeper search modes only when source coverage is low
@@ -229,81 +249,97 @@ A GenAI-powered catalog enrichment system that transforms basic product images i
 ## User Stories
 
 ### US-1: Basic Product Enrichment
+
 **As a** catalog manager  
 **I want to** upload a product image along with existing product data and receive AI-enhanced catalog data  
 **So that** I can augment and improve my existing catalog entries with richer, more accurate information
 
 ### US-1a: Localized Product Augmentation
+
 **As a** international catalog manager  
 **I want to** upload a product image with existing product data and a target locale to receive culturally-appropriate enhanced catalog data  
 **So that** I can improve my existing product listings with region-specific, culturally-relevant content that resonates with local customers
 
 ### US-2: Batch Processing
+
 **As a** catalog manager  
 **I want to** process multiple products simultaneously  
 **So that** I can efficiently enrich large catalog datasets
 
 ### US-3: Asset Generation
+
 **As a** marketing team member  
 **I want to** receive multiple image variations and video content  
 **So that** I can use diverse assets across different marketing channels
 
 ### US-3a: Cultural Asset Generation
+
 **As a** international marketing team member  
 **I want to** receive culturally-localized image variations that reflect regional aesthetics  
 **So that** I can create marketing campaigns that feel authentic and familiar to local audiences
 
 ### US-4: 3D Visualization
+
 **As a** e-commerce platform  
 **I want to** display 3D product models  
 **So that** customers can interact with products before purchase
 
 ### US-5: Trend-Informed Product Enrichment
+
 **As a** catalog manager  
 **I want to** enrich my product descriptions with trending styles and terminology from social media  
 **So that** my catalog stays current with market trends and uses language that resonates with customers
 
 ### US-5a: Social Media Sentiment Analysis
+
 **As a** product manager  
 **I want to** understand customer sentiment and common feedback about similar products from social media reviews  
 **So that** I can improve product descriptions by addressing common questions and highlighting popular features
 
 ### US-5b: Real-World Usage Context
+
 **As a** marketing team member  
 **I want to** see how customers are actually using and styling similar products in real-world scenarios from social media  
 **So that** I can create more authentic and relatable marketing content and product imagery
 
 ### US-5c: Competitive Intelligence
+
 **As a** merchandising manager  
 **I want to** identify trending color combinations, styling preferences, and complementary products from social media analysis  
 **So that** I can optimize product assortments and create effective cross-selling opportunities
 
 ### US-6: Brand-Consistent Enrichment
+
 **As a** brand manager  
 **I want to** provide custom brand voice, tone, and taxonomy guidelines to the enrichment system  
 **So that** all generated product content maintains consistency with my brand identity and uses our preferred terminology and classification standards
 
 ### US-7: Automated Quality Control
+
 **As a** catalog operations manager  
 **I want to** receive automated quality assessments with detailed scoring and issue detection for generated product images  
 **So that** I can quickly identify and filter out low-quality variations without manual review, ensuring only high-quality assets enter my catalog
 
 ### US-8: Product FAQ Generation
+
 **As a** e-commerce content manager  
 **I want to** automatically generate frequently asked questions and answers for each product based on its enriched catalog data  
 **So that** I can populate product FAQ sections without manual copywriting, improving the customer shopping experience
 
 ### US-9: Policy Compliance Checking
+
 **As a** catalog compliance officer  
 **I want to** upload policy PDFs and have the system automatically check enriched product listings against those policies  
 **So that** I can ensure all catalog entries comply with marketplace regulations and internal guidelines before publishing
 
 ### US-10: Manual-Enhanced Product FAQs
+
 **As a** e-commerce content manager  
 **I want to** upload a product manual PDF and have the system generate richer FAQs that include specific details like specs, care instructions, safety warnings, and warranty information  
 **So that** my product FAQ sections provide genuine value beyond what the description already covers, reducing customer support inquiries
 
 ### US-11: Product Web Insights
+
 **As a** catalog manager
 
 **I want to** see public web research about a product's pros, cons, customer feedback, and usage patterns after enrichment

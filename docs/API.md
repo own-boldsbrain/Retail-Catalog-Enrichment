@@ -10,17 +10,21 @@ This document provides detailed information about the Catalog Enrichment System 
 ## Health & Info Endpoints
 
 ### GET `/`
+
 Returns a plaintext greeting message.
 
-**Response**: 
+**Response**:
+
 ```
 Catalog Enrichment Backend
 ```
 
 ### GET `/health`
+
 Health check endpoint for monitoring service status.
 
 **Response**:
+
 ```json
 {
   "status": "ok"
@@ -45,6 +49,7 @@ The API provides a modular approach for optimal performance and flexibility:
 - **7) Protocol Schema Generation (POST `/protocols/generate`)** - Generate ACP and UCP schemas
 
 **Benefits of this approach:**
+
 - Display product information immediately to users
 - Load rich VLM JSON, FAQs, web insights, and protocol schemas independently
 - Generate images and 3D assets in the background or on-demand
@@ -59,6 +64,7 @@ The API provides a modular approach for optimal performance and flexibility:
 Manage the persistent PDF policy library used during analysis.
 
 Policy documents are handled as a persistent single-user RAG library:
+
 - uploaded PDFs are parsed and normalized into structured policy summaries
 - normalized policy records are embedded and stored in Milvus
 - `/vlm/analyze` automatically performs semantic retrieval against the loaded policy library
@@ -133,6 +139,7 @@ curl -X POST \
 ```
 
 Notes:
+
 - repeated uploads of the same PDF are deduplicated by content hash
 - `already_loaded=true` means the document was already present in the library
 - `processed=true` means the upload was newly parsed, normalized, embedded, and indexed
@@ -172,6 +179,7 @@ Extract product fields using NVIDIA Nemotron 3 Nano Omni and, when policies are 
 | `brand_instructions` | string | No | Custom brand voice, tone, style, and taxonomy guidelines |
 
 When one or more policy PDFs have been loaded through `/policies`, this endpoint also:
+
 - retrieves semantically relevant normalized policy records from Milvus using the VLM title/description/categories/tags/colors
 - runs a compliance classifier against the analyzed product and the retrieved policy records
 
@@ -221,6 +229,7 @@ When one or more policy PDFs have been loaded through `/policies`, this endpoint
 ### Usage Examples
 
 #### Image Only (Generation Mode)
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -229,6 +238,7 @@ curl -X POST \
 ```
 
 #### With Existing Product Data (Augmentation Mode)
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -238,6 +248,7 @@ curl -X POST \
 ```
 
 #### Regional Localization (Spain Spanish)
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -247,6 +258,7 @@ curl -X POST \
 ```
 
 #### With Brand-Specific Instructions
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -849,9 +861,11 @@ Generate interactive 3D GLB models from 2D product images using Microsoft's TREL
 ### Response Formats
 
 #### Binary Mode (default)
+
 Returns binary GLB file (`model/gltf-binary`) ready for download.
 
 #### JSON Mode
+
 ```json
 {
   "glb_base64": "string (base64)",
@@ -870,6 +884,7 @@ Returns binary GLB file (`model/gltf-binary`) ready for download.
 ### Usage Examples
 
 #### Basic Usage (Binary GLB Response)
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -878,6 +893,7 @@ curl -X POST \
 ```
 
 #### With Custom Parameters
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -891,6 +907,7 @@ curl -X POST \
 ```
 
 #### JSON Response (for Web Clients)
+
 ```bash
 curl -X POST \
   -F "image=@bag.jpg;type=image/jpeg" \
@@ -981,6 +998,7 @@ curl -X POST \
 ```
 
 **Notes:**
+
 - Calls the LLM once to extract structured fields (brand, material, age_group, gender, short_title, google_product_category, product_details, product_highlights), then builds both schemas from the same extraction
 - ACP schema includes agent actions, fulfillment, and campaigns sections for agentic commerce
 - UCP schema follows the Google Merchant Center Product Data Specification with `structured_title`/`structured_description` using `digital_source_type: "trained_algorithmic_media"` for AI-generated content
@@ -994,18 +1012,21 @@ curl -X POST \
 The API supports 10 regional locales for language and cultural context:
 
 ### English Variants
+
 - `en-US` - American English (default)
 - `en-GB` - British English  
 - `en-AU` - Australian English
 - `en-CA` - Canadian English
 
 ### Spanish Variants
+
 - `es-ES` - Spain Spanish (uses "ordenador")
-- `es-MX` - Mexican Spanish (uses "computadora") 
+- `es-MX` - Mexican Spanish (uses "computadora")
 - `es-AR` - Argentinian Spanish
 - `es-CO` - Colombian Spanish
 
 ### French Variants
+
 - `fr-FR` - Metropolitan French
 - `fr-CA` - Quebec French (Canadian)
 
@@ -1021,6 +1042,7 @@ All endpoints return standard HTTP status codes:
 - **500**: Internal Server Error
 
 Error response format:
+
 ```json
 {
   "detail": "Error message description"
